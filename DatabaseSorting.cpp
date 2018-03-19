@@ -1,5 +1,5 @@
 /*
- * main.cpp
+ * DatabaseSorting.cpp
  *
  *  Created on: 2017-06-22
  *      Author: SaltOverflow
@@ -545,6 +545,7 @@ int compare(Food &a, Food &b, int var) {
 
 void printFood(vector<Food> &v, int var) {
 	int n = v.size();
+
 	switch (var) {
 	case 1:
 		for (int i=0; i<n; i++)
@@ -938,8 +939,8 @@ void combSort(vector<Food> &v, int var, float &time, int &comps, int &swaps) {
 	clock_t t = clock();
 
 	int gap = v.size();
-	int shrink = 1.3;
-	int n = v.size()-1;
+	float shrink = 1.3;
+	int n = v.size();
 	comps = 0;
 	swaps = 0;
 	bool sorted;
@@ -979,7 +980,7 @@ void selectionSort(vector<Food> &v, int var, float &time, int &comps, int &swaps
 	for (int i=0; i<n; i++) {
 		minIndex = i;
 		for (int j=i+1; j<=n; j++) {
-			if (compare(v[j], v[minIndex], var) < 0)
+			if (compare(v[j], v[minIndex], var) > 0)
 				minIndex = j;
 			comps++;
 		}
@@ -998,13 +999,13 @@ void insertionSort(vector<Food> &v, int var, float &time, int &comps, int &moves
 	cout << "Insertion sorting...\n";
 	clock_t t = clock();
 
-	int n = v.size()-1;
+	int n = v.size();
 	comps = 0;
 	moves = 0;
 	Food holder;
 
-	for (int i=1; i<=n; i++) {
-		if (compare(v[i], v[i-1], var) < 0) {
+	for (int i=1; i<n; i++) {
+		if (compare(v[i], v[i-1], var) > 0) {
 			holder = v[i];
 			v[i] = v[i-1];
 			moves += 2;
@@ -1041,8 +1042,10 @@ void mergeSort(vector<Food> &v, vector<Food> &buff, int var, int start, int len,
 
 	int left = start;
 	int right = middle;
-
+cout << len << ' ';
+cout << len+start << ' ';
 	for (int i=start; i<start+len; i++) {
+		cout << 'a';
 		if (left >= middle) {
 			buff[i] = v[right];
 			right++;
@@ -1052,18 +1055,22 @@ void mergeSort(vector<Food> &v, vector<Food> &buff, int var, int start, int len,
 			left++;
 			moves++;
 		}
-
+cout << 'b';
 		if (compare(v[left], v[right], var) < 0) {
+			cout << 1;
 			buff[i] = v[left];
 			left++;
 			moves++;
 		} else {
+			cout << 2;
+			cout << i << ' ' << right;
 			buff[i] = v[right];
 			right++;
 			moves++;
 		}
+		cout << 'c';
 	}
-
+cout << len << "  ";
 	for (int i=start; i<start+len; i++) {
 		v[i] = buff[i];
 		moves++;
@@ -1095,7 +1102,7 @@ void quickSort(vector<Food> &v, int var, int start, int len,
 		swap(v[left], v[right]);
 		swaps++;
 	}
-
+cout << len << ' ';
 	quickSort(v, var, start, len/2, comps, swaps);
 	quickSort(v, var, middle, len-len/2, comps, swaps);
 }
@@ -1190,7 +1197,7 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 			vcopy = v;
 			insertionSort(vcopy, var, time[i], comps[i], moves[i]);
 		}
-	} else if (option == 6) {
+/*	} else if (option == 6) {
 		for (int i=0; i<tries; i++) {
 			vcopy = v;
 			comps[i] = 0;
@@ -1200,6 +1207,7 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 			clock_t t = clock();
 			vector<Food> buff(vcopy.size());
 			mergeSort(vcopy, buff, var, 0, vcopy.size(), comps[i], moves[i]);
+			cout << "success";
 			t = clock() - t;
 			time[i] = float(t)/CLOCKS_PER_SEC;
 			cout << "Time taken: " << float(t)/CLOCKS_PER_SEC << '\n';
@@ -1221,7 +1229,7 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 			cout << "Comparisons: " << comps[i] << '\t'
 					<< "Swaps: " << swaps[i] << '\n';
 		}
-	} else {
+*/	} else {
 		cerr << "Invalid option\n\n";
 		return;
 	}
@@ -1254,18 +1262,20 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 				<< "\tAvg Moves: " << avgMoves << '\n';
 
 	cout << "Print variable? (y/n) ";
-	char yesno;
+	char yesno = 'y';
+	cin.ignore(50, '\n');
 	cin.get(yesno);
-	cin.ignore(50);
+	cin.ignore(50, '\n');
 	if (yesno == 'y' || yesno == 'Y') {
 		printFood(vcopy, var);
 	}
 
 	cout << "Save to original vector? (y/n) ";
 	cin.get(yesno);
-	cin.ignore(50);
+	cin.ignore(50, '\n');
 	if (yesno == 'y' || yesno == 'Y') {
 		v = vcopy;
+		cout << "Sorted vector saved to original vector\n";
 	}
 
 	cout << '\n';
@@ -1294,9 +1304,11 @@ int main() {
 		}
 
 		cout << "\nSelect option:\n";
-		cout << "-1. Quit, 0. Legend, 1. Bubble Sort, 2. Cocktail Sort, "
+/*		cout << "-1. Quit, 0. Legend, 1. Bubble Sort, 2. Cocktail Sort, "
 				"3.Comb Sort, 4. Selection Sort, 5. Insertion Sort, "
-				"6. Merge Sort, 7. Quick Sort\n";
+				"6. Merge Sort, 7. Quick Sort\n";*/
+		cout << "-1. Quit, 0. Legend, 1. Bubble Sort, 2. Cocktail Sort, "
+				"3.Comb Sort, 4. Selection Sort, 5. Insertion Sort\n";
 		cin >> option;
 
 		if (option < 0) {
@@ -1304,11 +1316,17 @@ int main() {
 		} else if (option == 0) {
 			showOptionLegend();
 			continue;
-		} else if (option > 0 && option <= 7) {
-			cout << "Number of tries: ";
-			cin >> tries;
+		} else if (option > 0 && option <= 5) { //c
+			do {
+				cout << "Number of tries: ";
+				cin >> tries;
+				if (tries <= 0) {
+					cout << "Invalid number\n";
+					continue;
+				}
+			} while (tries <= 0);
 			sortData(v, sortVariable, option, tries);
-		} else if (option > 7) {
+		} else if (option > 5) { //c
 			cout << "Invalid option\n\n";
 			continue;
 		}
