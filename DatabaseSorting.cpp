@@ -939,28 +939,27 @@ void combSort(vector<Food> &v, int var, float &time, int &comps, int &swaps) {
 	clock_t t = clock();
 
 	int gap = v.size();
-	float shrink = 1.3;
+	const float shrink = 1.3;
 	int n = v.size();
 	comps = 0;
 	swaps = 0;
-	bool sorted;
+	bool swapped;
 
 	do {
+		swapped = false;
 		gap = int(gap/shrink);
-		if (gap > 1) {
-			sorted = false;
-		} else {
-			sorted = true;
-		}
+		if (gap < 1)
+			gap = 1;
 
 		for (int i=0; i<n-gap; i++) {
 			if (compare(v[i], v[i+gap], var) < 0) {
 				swap(v[i], v[i+gap]);
 				swaps++;
+				swapped = true;
 			}
 			comps++;
 		}
-	} while (!sorted);
+	} while (gap != 1 || swapped);
 
 	t = clock() - t;
 	time = float(t)/CLOCKS_PER_SEC;
@@ -980,13 +979,15 @@ void selectionSort(vector<Food> &v, int var, float &time, int &comps, int &swaps
 	for (int i=0; i<n; i++) {
 		minIndex = i;
 		for (int j=i+1; j<=n; j++) {
-			if (compare(v[j], v[minIndex], var) > 0)
+			if (compare(v[minIndex], v[j], var) < 0)
 				minIndex = j;
 			comps++;
 		}
 
-		swap(v[i], v[minIndex]);
-		swaps++;
+		if (i != minIndex) {
+			swap(v[i], v[minIndex]);
+			swaps++;
+		}
 	}
 
 	t = clock() - t;
@@ -1005,7 +1006,7 @@ void insertionSort(vector<Food> &v, int var, float &time, int &comps, int &moves
 	Food holder;
 
 	for (int i=1; i<n; i++) {
-		if (compare(v[i], v[i-1], var) > 0) {
+		if (compare(v[i-1], v[i], var) < 0) {
 			holder = v[i];
 			v[i] = v[i-1];
 			moves += 2;
@@ -1042,35 +1043,28 @@ void mergeSort(vector<Food> &v, vector<Food> &buff, int var, int start, int len,
 
 	int left = start;
 	int right = middle;
-cout << len << ' ';
-cout << len+start << ' ';
 	for (int i=start; i<start+len; i++) {
-		cout << 'a';
 		if (left >= middle) {
 			buff[i] = v[right];
 			right++;
 			moves++;
+			continue;
 		} else if (right >= len) {
 			buff[i] = v[left];
 			left++;
 			moves++;
+			continue;
 		}
-cout << 'b';
 		if (compare(v[left], v[right], var) < 0) {
-			cout << 1;
-			buff[i] = v[left];
-			left++;
-			moves++;
-		} else {
-			cout << 2;
-			cout << i << ' ' << right;
 			buff[i] = v[right];
 			right++;
 			moves++;
+		} else {
+			buff[i] = v[left];
+			left++;
+			moves++;
 		}
-		cout << 'c';
 	}
-cout << len << "  ";
 	for (int i=start; i<start+len; i++) {
 		v[i] = buff[i];
 		moves++;
@@ -1082,29 +1076,29 @@ void quickSort(vector<Food> &v, int var, int start, int len,
 	if (len <= 1)
 		return;
 
-	int left = start;
-	int right = start+len-1;
+	int left = start-1;
+	int right = start+len;
 	int middle = start+len/2;
 	Food pivot = v[middle];
 
 	while (true) {
-		while (compare(v[left], pivot, var) > 0) {
+		do {
 			left++;
 			comps++;
-		}
-		while (compare(v[right], pivot, var) < 0) {
+		} while (compare(v[left], pivot, var) > 0);
+		do {
 			right--;
 			comps++;
-		}
-		comps += 2;
+		} while (compare(pivot, v[right], var) > 0);
 		if (left >= right)
 			break;
 		swap(v[left], v[right]);
 		swaps++;
 	}
-cout << len << ' ';
-	quickSort(v, var, start, len/2, comps, swaps);
-	quickSort(v, var, middle, len-len/2, comps, swaps);
+	if (right == start+len-1)
+		right--;
+	quickSort(v, var, start, right-start, comps, swaps);
+	quickSort(v, var, right, len-right+start, comps, swaps);
 }
 
 int min(int a[], int size) {
@@ -1197,7 +1191,7 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 			vcopy = v;
 			insertionSort(vcopy, var, time[i], comps[i], moves[i]);
 		}
-/*	} else if (option == 6) {
+	} else if (option == 6) {
 		for (int i=0; i<tries; i++) {
 			vcopy = v;
 			comps[i] = 0;
@@ -1229,7 +1223,7 @@ void sortData(vector<Food> &v, int var, int option, int tries) {
 			cout << "Comparisons: " << comps[i] << '\t'
 					<< "Swaps: " << swaps[i] << '\n';
 		}
-*/	} else {
+	} else {
 		cerr << "Invalid option\n\n";
 		return;
 	}
@@ -1317,14 +1311,16 @@ int main() {
 			showOptionLegend();
 			continue;
 		} else if (option > 0 && option <= 5) { //c
-			do {
+			while (1) {
 				cout << "Number of tries: ";
 				cin >> tries;
 				if (tries <= 0) {
 					cout << "Invalid number\n";
 					continue;
+				} else {
+					break;
 				}
-			} while (tries <= 0);
+			}
 			sortData(v, sortVariable, option, tries);
 		} else if (option > 5) { //c
 			cout << "Invalid option\n\n";
